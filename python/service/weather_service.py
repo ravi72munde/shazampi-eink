@@ -17,22 +17,28 @@ class WeatherService:
         }[units]
 
     def get_weather_data(self):
-        response = requests.get(self.full_url)
-        response.raise_for_status()
-        data = response.json()
+        try:
+            response = requests.get(self.full_url)
+            response.raise_for_status()
+            data = response.json()
 
-        temperature = str(round(data['main']['temp'])) + self.temp_display_unit
-        feels_like = str(round(data['main']['feels_like'])) + self.temp_display_unit
-        high = str(round(data['main']['temp_max'])) + "&deg; F"
-        low = str(round(data['main']['temp_min'])) + "&deg; F"
-        condition_str = data['weather'][0]['description']
+            temperature = str(round(data['main']['temp'])) + self.temp_display_unit
+            feels_like = str(round(data['main']['feels_like'])) + self.temp_display_unit
+            condition_str = data['weather'][0]['description']
 
-        weather_sub_description = f'Feels like {feels_like}. {condition_str}'
+            weather_sub_description = f'Feels like {feels_like}. {condition_str}'
 
-        return {'temperature': temperature,
-                'weather_sub_description': weather_sub_description.title(),
-                'fetched_at': datetime.datetime.now()
-                }
+            return {'temperature': temperature,
+                    'weather_sub_description': weather_sub_description.title(),
+                    'fetched_at': datetime.datetime.now()
+                    }
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching weather data: {e}")
+            return {'temperature': "inf",
+                    'weather_sub_description': "no weather info",
+                    'fetched_at': datetime.datetime.now()
+                    }
+
 
 
 
