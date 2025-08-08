@@ -5,13 +5,16 @@ if [[ $EUID -eq 0 ]]; then
 fi
 echo "Checking SPI status..."
 
-# Check if SPI device files exist
-if [[ -e /dev/spidev0.0 ]] || [[ -e /dev/spidev0.1 ]]; then
+if grep -q '^dtoverlay=spi0-0cs' /boot/firmware/config.txt && \
+   grep -q '^dtparam=spi=on' /boot/firmware/config.txt; then
     echo "SPI is enabled."
 else
-    echo "SPI is not enabled. Please enable SPI in raspi-config and try again." >&2
+    echo "SPI is not enabled. Please add the following lines to /boot/firmware/config.txt and reboot:" >&2
+    echo "  dtoverlay=spi0-0cs" >&2
+    echo "  dtparam=spi=on" >&2
     exit 1
 fi
+
 
 echo "###### Update Packages list"
 sudo apt update
