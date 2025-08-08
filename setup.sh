@@ -167,4 +167,13 @@ sudo systemctl daemon-reload
 sudo systemctl start shazampi-eink-display
 sudo systemctl enable shazampi-eink-display
 echo "...done"
-echo "SETUP IS COMPLETE"
+echo
+echo
+read -p "Setup complete. Reboot now? (y/n): " answer
+if [[ "$answer" =~ ^[Yy]$ ]]; then
+    echo "Rebooting..."
+    sudo reboot
+else
+    echo "Reboot canceled. Please reboot later to apply changes."
+fi
+
