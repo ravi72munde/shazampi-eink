@@ -5,7 +5,7 @@ requests
 scipy
 sounddevice
 requests
-numpy
+numpy<2
 shazamio
 librosa
 tflite-runtime; sys_platform == "linux"
