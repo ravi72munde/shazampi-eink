@@ -28,6 +28,7 @@ Most of the work for displaying content is derived from [Spotipi-eink](https://g
 This has been tried and tested on the Raspberry Pi Zero 2W, so it should work on any Raspberry Pi released after that.
 
 ## Getting Started
+* This has been tested with `Raspberry Pi OS(64-bit) lite bookworm`
 * Add following config to your `/boot/firware/config` to enable SPI and reboot :
     ```bash
     dtoverlay=spi0-0cs
