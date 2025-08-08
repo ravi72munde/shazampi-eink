@@ -16,8 +16,6 @@ fi
 echo "###### Update Packages list"
 sudo apt update
 echo
-echo "###### Update to the latest"
-sudo apt upgrade -y
 echo
 echo "###### Ensure system packages are installed:"
 sudo apt-get install python3-pip python3-venv python3-numpy git libopenjp2-7 libportaudio2 -y
@@ -38,7 +36,7 @@ python3 -m venv --system-site-packages shazampienv
 echo "Activating shazampi Python environment"
 source ${install_path}/shazampienv/bin/activate
 echo Install Python packages
-pip3 install -r requirements.txt --upgrade
+pip3 install -r requirements.txt
 echo "##### shazampi Python environment created"
 echo
 echo "###### Generate config"
