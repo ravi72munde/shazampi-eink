@@ -57,10 +57,18 @@ fi
 echo
 echo "###### Display setup"
 PS3="Please select your Display Model: "
-options=("Pimoroni Inky Impression 4 (640x400)" "Waveshare 4.01inch ACeP 4 (640x400)" "Pimoroni Inky Impression 5.7 (600x448)" "Pimoroni Inky Impression 7.3 (800x480)")
+options=("Pimoroni Inky pHAT 2.13 (212x104)" "Pimoroni Inky Impression 4 (640x400)" "Waveshare 4.01inch ACeP 4 (640x400)" "Pimoroni Inky Impression 5.7 (600x448)" "Pimoroni Inky Impression 7.3 (800x480)")
 select opt in "${options[@]}"
 do
     case $opt in
+        "Pimoroni Inky pHAT 2.13 (212x104)")
+            echo "[DEFAULT]" >> ${install_path}/config/eink_options.ini
+            echo "width = 212" >> ${install_path}/config/eink_options.ini
+            echo "height = 104" >> ${install_path}/config/eink_options.ini
+            echo "album_cover_small_px = 0" >> ${install_path}/config/eink_options.ini
+            echo "model = inky-phat" >> ${install_path}/config/eink_options.ini
+            break
+            ;;
         "Pimoroni Inky Impression 4 (640x400)")
             echo "[DEFAULT]" >> ${install_path}/config/eink_options.ini
             echo "width = 640" >> ${install_path}/config/eink_options.ini
@@ -107,11 +115,17 @@ echo "album_cover_small = True" >> ${install_path}/config/eink_options.ini
 echo "; cleans the display every 20 picture" >> ${install_path}/config/eink_options.ini
 echo "; this takes ~60 seconds" >> ${install_path}/config/eink_options.ini
 echo "display_refresh_counter = 20" >> ${install_path}/config/eink_options.ini
+echo "; uncomment to override how long we wait after identifying a song" >> ${install_path}/config/eink_options.ini
+echo "; delay_override = 20" >> ${install_path}/config/eink_options.ini
 echo "shazampi_log = ${install_path}/log/shazampi.log" >> ${install_path}/config/eink_options.ini
 echo "no_song_cover = ${install_path}/resources/default.jpg" >> ${install_path}/config/eink_options.ini
 echo "font_path = ${install_path}/resources/CircularStd-Bold.otf" >> ${install_path}/config/eink_options.ini
 echo "font_size_title = 45" >> ${install_path}/config/eink_options.ini
 echo "font_size_artist = 35" >> ${install_path}/config/eink_options.ini
+echo "; Color of text for display readability" >> ${install_path}/config/eink_options.ini
+echo "; ie. inky phat (red, yellow, white, black)" >> ${install_path}/config/eink_options.ini
+echo "text_color = white" >> ${install_path}/config/eink_options.ini
+echo "text_shadow_color = black" >> ${install_path}/config/eink_options.ini
 echo "offset_px_left = 20" >> ${install_path}/config/eink_options.ini
 echo "offset_px_right = 20" >> ${install_path}/config/eink_options.ini
 echo "offset_px_top = 0" >> ${install_path}/config/eink_options.ini
