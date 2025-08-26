@@ -12,11 +12,12 @@ cache_lock = threading.Lock()
 class MusicDetector:
     def __init__(self, recording_duration):
         try:
-            from tflite_runtime.interpreter import Interpreter
-            self.interpreter = Interpreter('python/ml-model/1.tflite')
+            from ai_edge_litert.interpreter import Interpreter
+            self.interpreter = Interpreter(model_path='python/ml-model/1.tflite')
         except ModuleNotFoundError:
             import tensorflow as tf
-            self.interpreter = tf.lite.Interpreter('python/ml-model/1.tflite')
+            self.interpreter = tf.lite.Interpreter(model_path='python/ml-model/1.tflite')
+
         self.down_sampled_rate = 16000
         self.raw_recording_sample_rate = 44100
         self.input_details = self.interpreter.get_input_details()
@@ -25,8 +26,11 @@ class MusicDetector:
         self.scores_output_index = self.output_details[0]['index']
         self.embeddings_output_index = self.output_details[1]['index']
         self.spectrogram_output_index = self.output_details[2]['index']
-        self.interpreter.resize_tensor_input(self.waveform_input_index,
-                                             [recording_duration * self.down_sampled_rate], strict=True)
+        self.interpreter.resize_tensor_input(
+            self.waveform_input_index,
+            [recording_duration * self.down_sampled_rate],
+            strict=True
+        )
         self.interpreter.allocate_tensors()
 
         self.class_names = None
@@ -42,6 +46,5 @@ class MusicDetector:
         scores = self.interpreter.get_tensor(self.scores_output_index)
         scores_mean = scores.mean(axis=0)
         top_i = scores_mean.argmax()
-
-        # if the highest probability is assigned to Music with a confidence of more than 20 %
         return 'Music' in self.class_names[top_i] and scores_mean[top_i] > 0.2
+

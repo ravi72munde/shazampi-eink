@@ -1,11 +1,10 @@
 pillow
 requests
-inky[rpi,example-depends]; sys_platform == "linux"
-requests
+inky[rpi,example-depends]
 scipy
 sounddevice
 requests
-numpy<2
+numpy
 shazamio
 librosa
-tflite-runtime; sys_platform == "linux"
+ai-edge-litert
