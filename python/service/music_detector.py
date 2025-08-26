@@ -46,6 +46,5 @@ class MusicDetector:
         scores = self.interpreter.get_tensor(self.scores_output_index)
         scores_mean = scores.mean(axis=0)
         top_i = scores_mean.argmax()
-        logger.info(top_i)
         return 'Music' in self.class_names[top_i] and scores_mean[top_i] > 0.2
 
