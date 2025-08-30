@@ -2,4 +2,9 @@ pillow
 requests
 inky[rpi,example-depends]
 scipy
-webhook_listener
+sounddevice
+requests
+numpy
+shazamio
+librosa
+ai-edge-litert

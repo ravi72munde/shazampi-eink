@@ -180,7 +180,6 @@ But I'm sure any mic should work as long as it records with least at 16kHz sampl
 
 ### Example picture of 4" display in custom case:
 <img src="/images/example.png" height="350">
-<img src="/images/example_2.png" height="350">
 
 ### Default view when no song playing on Waveshare 4.01 color display with weather info
 <img src="/images/no_song.jpg" height="350">
