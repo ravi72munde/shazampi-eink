@@ -103,7 +103,7 @@ echo "###### Creating default config entries and files"
 echo "; disable smaller album cover set to False" >> ${install_path}/config/eink_options.ini
 echo "; if disabled top offset is still calculated like as the following:" >> ${install_path}/config/eink_options.ini
 echo "; offset_px_top + album_cover_small_px" >> ${install_path}/config/eink_options.ini
-echo "album_cover_small = True" >> ${install_path}/config/eink_options.ini
+echo "album_cover_small = False" >> ${install_path}/config/eink_options.ini
 echo "; cleans the display every 20 picture" >> ${install_path}/config/eink_options.ini
 echo "; this takes ~60 seconds" >> ${install_path}/config/eink_options.ini
 echo "display_refresh_counter = 20" >> ${install_path}/config/eink_options.ini
