@@ -155,7 +155,7 @@ GID_TO_USE=$(id -g)
 echo
 echo "Creating shazampi-eink-display service:"
 sudo cp "${install_path}/setup/service_template/shazampi-eink-display.service" /etc/systemd/system/
-sudo sed -i -e "/\[Service\]/a ExecStart=${install_path}/shazampienv/bin/python3 ${install_path}/python/shazampiEinkDisplay.py" /etc/systemd/system/shazampi-eink-display.service
+sudo sed -i -e "/\[Service\]/a ExecStart=${install_path}/shazampienv/bin/python3 ${install_path}/python/main.py" /etc/systemd/system/shazampi-eink-display.service
 sudo sed -i -e "/ExecStart/a WorkingDirectory=${install_path}" /etc/systemd/system/shazampi-eink-display.service
 sudo sed -i -e "/EnvironmentFile/a User=${UID_TO_USE}" /etc/systemd/system/shazampi-eink-display.service
 sudo sed -i -e "/User/a Group=${GID_TO_USE}" /etc/systemd/system/shazampi-eink-display.service
