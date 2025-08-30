@@ -2,4 +2,4 @@ pillow
 requests
 inky[rpi,example-depends]
 scipy
-librosa
+webhook_listener

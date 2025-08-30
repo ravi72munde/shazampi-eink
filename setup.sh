@@ -21,7 +21,7 @@ sudo apt update
 echo
 echo
 echo "###### Ensure system packages are installed:"
-sudo apt-get install python3-pip python3-venv git libopenjp2-7 libportaudio2 -y
+sudo apt-get install python3-pip python3-venv git libopenjp2-7
 echo
 if [ -d "shazampi-eink" ]; then
     echo "Old installation found deleting it"
