@@ -21,7 +21,7 @@ sudo apt update
 echo
 echo
 echo "###### Ensure system packages are installed:"
-sudo apt-get install python3-pip python3-venv git libopenjp2-7 libportaudio2 -y
+sudo apt-get install python3-pip python3-venv git libopenjp2-7
 echo
 if [ -d "shazampi-eink" ]; then
     echo "Old installation found deleting it"
@@ -103,7 +103,7 @@ echo "###### Creating default config entries and files"
 echo "; disable smaller album cover set to False" >> ${install_path}/config/eink_options.ini
 echo "; if disabled top offset is still calculated like as the following:" >> ${install_path}/config/eink_options.ini
 echo "; offset_px_top + album_cover_small_px" >> ${install_path}/config/eink_options.ini
-echo "album_cover_small = True" >> ${install_path}/config/eink_options.ini
+echo "album_cover_small = False" >> ${install_path}/config/eink_options.ini
 echo "; cleans the display every 20 picture" >> ${install_path}/config/eink_options.ini
 echo "; this takes ~60 seconds" >> ${install_path}/config/eink_options.ini
 echo "display_refresh_counter = 20" >> ${install_path}/config/eink_options.ini
@@ -155,7 +155,7 @@ GID_TO_USE=$(id -g)
 echo
 echo "Creating shazampi-eink-display service:"
 sudo cp "${install_path}/setup/service_template/shazampi-eink-display.service" /etc/systemd/system/
-sudo sed -i -e "/\[Service\]/a ExecStart=${install_path}/shazampienv/bin/python3 ${install_path}/python/shazampiEinkDisplay.py" /etc/systemd/system/shazampi-eink-display.service
+sudo sed -i -e "/\[Service\]/a ExecStart=${install_path}/shazampienv/bin/python3 ${install_path}/python/main.py" /etc/systemd/system/shazampi-eink-display.service
 sudo sed -i -e "/ExecStart/a WorkingDirectory=${install_path}" /etc/systemd/system/shazampi-eink-display.service
 sudo sed -i -e "/EnvironmentFile/a User=${UID_TO_USE}" /etc/systemd/system/shazampi-eink-display.service
 sudo sed -i -e "/User/a Group=${GID_TO_USE}" /etc/systemd/system/shazampi-eink-display.service
