@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import datetime
 import time
 import sys
 import logging
@@ -31,10 +30,8 @@ class ViewState(Enum):
 
 
 class ShazampiEinkDisplay:
-    def __init__(self, delay=120, recording_duration=10):
+    def __init__(self):
         signal.signal(signal.SIGTERM, self._handle_sigterm)
-        self.delay = delay
-        self.recording_duration = recording_duration
 
         # Configuration for the matrix
         self.config = configparser.ConfigParser()
@@ -46,11 +43,6 @@ class ShazampiEinkDisplay:
         # automatically deletes logs more than 2000 bytes
         handler = RotatingFileHandler(self.config.get('DEFAULT', 'shazampi_log'), maxBytes=2000, backupCount=3)
         logger.addHandler(handler)
-
-        # setup services
-        self.audio_service = AudioService()
-        self.music_detector = MusicDetector(self.recording_duration)
-        self.shazam_service = ShazamService()
 
         openweathermap_api_key = self.config.get('DEFAULT', 'openweathermap_api_key')
         geo_coordinates = self.config.get('DEFAULT', 'geo_coordinates')
@@ -315,8 +307,10 @@ class ShazampiEinkDisplay:
             # download cover
             image = self._gen_pic(Image.open(requests.get(song_info.album_art, stream=True).raw), song_info.artist,
                                   song_info.title)
+            self.current_view = ViewState.PLAYING
         elif weather_info:
-
+            if self.current_view == ViewState.PLAYING:
+                return
             # not song playing use logo + weather info
             image = self._gen_pic(Image.open(self.config.get('DEFAULT', 'no_song_cover')),
                                   weather_info['weather_sub_description'],
@@ -325,6 +319,7 @@ class ShazampiEinkDisplay:
             # not song playing use logo
             image = self._gen_pic(Image.open(self.config.get('DEFAULT', 'no_song_cover')), 'shazampi-eink',
                                   'No song playing')
+            self.current_view = ViewState.NOTHING_PLAYING
         # clean screen every x pics
         if self.pic_counter > self.config.getint('DEFAULT', 'display_refresh_counter'):
             self._display_clean()
@@ -332,100 +327,3 @@ class ShazampiEinkDisplay:
         # display picture on display
         self._display_image(image)
         self.pic_counter += 1
-
-    def _get_song_info(self, raw_audio) -> SongInfo:
-        """get the currently playing song
-
-        Returns:
-            SongInfo: with song name, album cover url, artist's name's
-        """
-        wav_audio = self.audio_service.convert_audio_to_wav_format(raw_audio)
-        song_info_dict = self.shazam_service.identify_song(wav_audio)
-        if song_info_dict:
-            logging.debug("found song")
-            return SongInfo(title=song_info_dict['title'],
-                            artist=song_info_dict['artist'],
-                            album_art=song_info_dict['album_art'],
-                            song_duration=song_info_dict['song_duration'],
-                            offset=song_info_dict['offset'])
-        else:
-            logging.debug("couldn't identify the music")
-
-    def start(self):
-        self.logger.info('Service started')
-        # clean screen initially
-        self._display_clean()
-        prev_song_title = None
-        weather_info = self.weather_service.get_weather_data()
-        was_music_playing = False
-        last_music_detection_time = datetime.datetime.now()
-        song_end_duration_left = self.delay
-        try:
-            while True:
-                try:
-                    raw_audio = self.audio_service.record_raw_audio(self.recording_duration)
-                    is_music_playing = self.music_detector.is_audio_music(raw_audio)
-                    if is_music_playing:
-                        # music is playing but check if we should re-trigger shazam
-                        #   music was stopped in previous iteration i.e !was_music_playing
-                        #   OR
-                        #   song_info is outdated
-                        if not was_music_playing or datetime.datetime.now() - last_music_detection_time >= datetime.timedelta(
-                                seconds=song_end_duration_left):
-                            self.logger.debug("music detected, identifying....")
-                            # music detected, identify using shazam
-                            song_info = self._get_song_info(raw_audio)
-
-                            if song_info:
-                                self.logger.debug("identified....")
-                                # update remaining time to wait for next re-identify
-                                if song_info.song_duration is None or song_info.offset is None:
-                                    song_end_duration_left = self.delay
-                                else:
-                                    song_end_duration_left = max(self.delay,
-                                                                 song_info.song_duration-song_info.offset-self.recording_duration)
-                            else:
-                                self.logger.debug("couldn't identify the song")
-                                song_end_duration_left = 30  # couldn't identify song so retry in 30 sec
-
-                            self.logger.debug(f"won't re-identify for {song_end_duration_left} seconds")
-
-                            if song_info and song_info.title != prev_song_title:
-                                self._display_update_process(song_info=song_info)
-                                self.current_view = ViewState.PLAYING
-                                prev_song_title = song_info.title
-                            last_music_detection_time = datetime.datetime.now()
-                        was_music_playing = True
-                    else:
-                        if was_music_playing:
-                            self.logger.debug("music stopped...")
-                        was_music_playing = False
-
-                    if (not was_music_playing
-                            and datetime.datetime.now() - last_music_detection_time >= datetime.timedelta(minutes=1)):
-                        # nothing playing to set display to NO SONG view
-
-                        # no need to reset everytime
-                        if self.current_view != ViewState.NOTHING_PLAYING:
-                            self._display_update_process(weather_info=weather_info)
-                            prev_song_title = None
-
-                        # weather data outdated after 30 min, update
-                        elif datetime.datetime.now() - weather_info['fetched_at'] >= datetime.timedelta(minutes=30):
-                            weather_info = self.weather_service.get_weather_data()
-                            self._display_update_process(weather_info=weather_info)
-                            self.current_view = ViewState.NOTHING_PLAYING
-
-                        self.current_view = ViewState.NOTHING_PLAYING
-
-                except Exception as e:
-                    self.logger.error(f'Error: {e}')
-                    self.logger.error(traceback.format_exc())
-        except KeyboardInterrupt:
-            self.logger.info('Service stopping')
-            sys.exit(0)
-
-
-if __name__ == "__main__":
-    service = ShazampiEinkDisplay()
-    service.start()
