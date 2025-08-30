@@ -26,7 +26,7 @@ def handle_webhook(request, *args, **kwargs):
     else:
         # fallback to weather
         weather = display.weather_service.get_weather_data()
-        display.display_update_process(weather_info=weather)
+        display.display_update_process(weather_info=weather, reset_playing=True)
 
 # --- Periodic weather updater ---
 def weather_loop(interval_minutes=30):

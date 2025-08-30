@@ -283,13 +283,15 @@ class ShazampiEinkDisplay:
                                      x_end_offset=offset_px_right, offset_text_px_shadow=offset_text_px_shadow)
         return image_new
 
-    def display_update_process(self, song_info: SongInfo = None, weather_info=None):
+    def display_update_process(self, song_info: SongInfo = None, weather_info=None, reset_playing=False):
         """
         Args:
             song_info (SongInfo)
         Returns:
             int: updated picture refresh counter
         """
+        if reset_playing:
+            self.current_view = ViewState.NOTHING_PLAYING
         if song_info:
             # download cover
             image = self._gen_pic(Image.open(requests.get(song_info.album_art, stream=True).raw), song_info.artist,
