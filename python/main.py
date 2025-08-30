@@ -1,7 +1,10 @@
+import configparser
+import os
 import threading
 import json
-from webhook_listener import Listener  # your webhook listener module
-from shazampi_display import ShazampiEinkDisplay, SongInfo  # adjust import paths
+from webhook_listener import Listener
+from shazampi_display import ShazampiEinkDisplay, SongInfo
+from service.weather_service import WeatherService
 
 display = ShazampiEinkDisplay()
 
@@ -19,17 +22,17 @@ def handle_webhook(request, *args, **kwargs):
             offset=None,
             song_duration=None
         )
-        display._display_update_process(song_info=song)
+        display.display_update_process(song_info=song)
     else:
         # fallback to weather
         weather = display.weather_service.get_weather_data()
-        display._display_update_process(weather_info=weather)
+        display.display_update_process(weather_info=weather)
 
 # --- Periodic weather updater ---
 def weather_loop(interval_minutes=30):
     while True:
         weather = display.weather_service.get_weather_data()
-        display._display_update_process(weather_info=weather)
+        display.display_update_process(weather_info=weather)
         threading.Event().wait(interval_minutes * 60)
 
 # --- Start webhook listener ---
@@ -37,11 +40,31 @@ handlers = {'POST': handle_webhook}
 listener = Listener(handlers=handlers)
 
 if __name__ == "__main__":
-    # show initial weather immediately
-    initial_weather = display.weather_service.get_weather_data()
-    display._display_update_process(weather_info=initial_weather)
+    # Load config and weather service
+    config = configparser.ConfigParser()
+    config.read(os.path.join(os.path.dirname(__file__), '..', 'config', 'eink_options.ini'))
+    openweathermap_api_key = config.get('DEFAULT', 'openweathermap_api_key')
+    geo_coordinates = config.get('DEFAULT', 'geo_coordinates')
+    units = config.get('DEFAULT', 'units')
+    display.weather_service = WeatherService(api_key=openweathermap_api_key,
+                                             geo_coordinates=geo_coordinates,
+                                             units=units)
 
-    threading.Thread(target=weather_loop, daemon=True).start()
+    # Show initial weather immediately
+    initial_weather = display.weather_service.get_weather_data()
+    display.display_update_process(weather_info=initial_weather)
+
+    # Start weather updater in a daemon thread
+    weather_thread = threading.Thread(target=weather_loop, daemon=True)
+    weather_thread.start()
+
     print("Webhook listener running...")
+
+    # Start webhook listener
     listener.start()
 
+    # Block main thread to keep daemon threads alive
+    try:
+        threading.Event().wait()
+    except KeyboardInterrupt:
+        print("Exiting service...")

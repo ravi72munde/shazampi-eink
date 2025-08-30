@@ -14,11 +14,6 @@ import requests
 import signal
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageEnhance
 
-from service.audio_service import AudioService
-from service.music_detector import MusicDetector
-from service.shazam_service import ShazamService
-from service.weather_service import WeatherService
-
 SongInfo = namedtuple('SongInfo', ['title', 'artist', 'album_art', 'offset', 'song_duration'])
 
 
@@ -44,18 +39,10 @@ class ShazampiEinkDisplay:
         handler = RotatingFileHandler(self.config.get('DEFAULT', 'shazampi_log'), maxBytes=2000, backupCount=3)
         logger.addHandler(handler)
 
-        openweathermap_api_key = self.config.get('DEFAULT', 'openweathermap_api_key')
-        geo_coordinates = self.config.get('DEFAULT', 'geo_coordinates')
-        units = self.config.get('DEFAULT', 'units')
-        self.weather_service = WeatherService(api_key=openweathermap_api_key,
-                                              geo_coordinates=geo_coordinates,
-                                              units=units)
-
         # prep some vars before entering service loop
         self.pic_counter = 0
         self.current_view = ViewState.UNKNOWN
         self.logger = self._init_logger()
-        self.logger.info('Service instance created')
         if self.config.get('DEFAULT', 'model') == 'inky':
             from inky.auto import auto
             from inky.inky_uc8159 import CLEAN
@@ -296,7 +283,7 @@ class ShazampiEinkDisplay:
                                      x_end_offset=offset_px_right, offset_text_px_shadow=offset_text_px_shadow)
         return image_new
 
-    def _display_update_process(self, song_info: SongInfo = None, weather_info=None):
+    def display_update_process(self, song_info: SongInfo = None, weather_info=None):
         """
         Args:
             song_info (SongInfo)
