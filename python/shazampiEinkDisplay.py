@@ -55,6 +55,11 @@ class ShazampiEinkDisplay:
         openweathermap_api_key = self.config.get('DEFAULT', 'openweathermap_api_key')
         geo_coordinates = self.config.get('DEFAULT', 'geo_coordinates')
         units = self.config.get('DEFAULT', 'units')
+
+        # delay
+        if self.config.has_option('DEFAULT', 'delay_override'):
+            self.delay = int(self.config.get('DEFAULT', 'delay_override'))
+
         self.weather_service = WeatherService(api_key=openweathermap_api_key,
                                               geo_coordinates=geo_coordinates,
                                               units=units)
@@ -65,6 +70,12 @@ class ShazampiEinkDisplay:
         self.logger = self._init_logger()
         self.logger.info('Service instance created')
         if self.config.get('DEFAULT', 'model') == 'inky':
+            from inky.auto import auto
+            from inky.inky_uc8159 import CLEAN
+            self.inky_auto = auto
+            self.inky_clean = CLEAN
+            self.logger.info('Loading Pimoroni inky lib')
+        if self.config.get('DEFAULT', 'model') == 'inky-phat':
             from inky.auto import auto
             from inky.inky_uc8159 import CLEAN
             self.inky_auto = auto
@@ -109,7 +120,7 @@ class ShazampiEinkDisplay:
         t = ' '.join(text[:lo])  # this makes a string again
         w = int(draw.textlength(text=t, font=font))
         yield t, w
-        yield from self._break_fix(text[lo:], width, font, draw)
+        # yield from self._break_fix(text[lo:], width, font, draw)
 
     def _fit_text_top_down(self, img: Image, text: str, text_color: str, shadow_text_color: str, font: ImageFont,
                            y_offset: int, font_size: int, x_start_offset: int = 0, x_end_offset: int = 0,
@@ -170,6 +181,14 @@ class ShazampiEinkDisplay:
 
                     inky.show()
                     time.sleep(1.0)
+            if self.config.get('DEFAULT', 'model') == 'inky-phat':
+                inky = self.inky_auto()
+                for _ in range(2):
+                    for y in range(inky.height - 1):
+                        for x in range(inky.width - 1):
+                            inky.set_pixel(x, y, self.inky_clean)
+                    inky.show()
+                    time.sleep(1.0)
             if self.config.get('DEFAULT', 'model') == 'waveshare4':
                 epd = self.wave4.EPD()
                 epd.init()
@@ -214,6 +233,10 @@ class ShazampiEinkDisplay:
                 inky = self.inky_auto()
                 inky.set_image(image, saturation=saturation)
                 inky.show()
+            if self.config.get('DEFAULT', 'model') == 'inky-phat':
+                inky = self.inky_auto()
+                inky.set_image(image)
+                inky.show()
             if self.config.get('DEFAULT', 'model') == 'waveshare4':
                 epd = self.wave4.EPD()
                 epd.init()
@@ -241,6 +264,8 @@ class ShazampiEinkDisplay:
         offset_px_bottom = self.config.getint('DEFAULT', 'offset_px_bottom')
         offset_text_px_shadow = self.config.getint('DEFAULT', 'offset_text_px_shadow')
         text_direction = self.config.get('DEFAULT', 'text_direction')
+        text_color = self.config.get('DEFAULT', 'text_color')
+        text_shadow_color = self.config.get('DEFAULT', 'text_shadow_color')
         # The width and height of the background
         bg_w, bg_h = image.size
         if self.config.get('DEFAULT', 'background_mode') == 'fit':
@@ -276,29 +301,29 @@ class ShazampiEinkDisplay:
                                          self.config.getint('DEFAULT', 'font_size_artist'))
         if text_direction == 'top-down':
             title_position_y = album_cover_small_px + offset_px_top + 10
-            title_height = self._fit_text_top_down(img=image_new, text=title, text_color='white',
-                                                   shadow_text_color='black', font=font_title,
+            title_height = self._fit_text_top_down(img=image_new, text=title, text_color=text_color,
+                                                   shadow_text_color=text_shadow_color, font=font_title,
                                                    font_size=self.config.getint('DEFAULT', 'font_size_title'),
                                                    y_offset=title_position_y, x_start_offset=offset_px_left,
                                                    x_end_offset=offset_px_right,
                                                    offset_text_px_shadow=offset_text_px_shadow)
             artist_position_y = album_cover_small_px + offset_px_top + 10 + title_height
-            self._fit_text_top_down(img=image_new, text=artist, text_color='white', shadow_text_color='black',
+            self._fit_text_top_down(img=image_new, text=artist, text_color=text_color, shadow_text_color=text_shadow_color,
                                     font=font_artist, font_size=self.config.getint('DEFAULT', 'font_size_artist'),
                                     y_offset=artist_position_y, x_start_offset=offset_px_left,
                                     x_end_offset=offset_px_right, offset_text_px_shadow=offset_text_px_shadow)
         if text_direction == 'bottom-up':
             artist_position_y = self.config.getint('DEFAULT', 'height') - (
                     offset_px_bottom + self.config.getint('DEFAULT', 'font_size_artist'))
-            artist_height = self._fit_text_bottom_up(img=image_new, text=artist, text_color='white',
-                                                     shadow_text_color='black', font=font_artist,
+            artist_height = self._fit_text_bottom_up(img=image_new, text=artist, text_color=text_color,
+                                                     shadow_text_color=text_shadow_color, font=font_artist,
                                                      font_size=self.config.getint('DEFAULT', 'font_size_artist'),
                                                      y_offset=artist_position_y, x_start_offset=offset_px_left,
                                                      x_end_offset=offset_px_right,
                                                      offset_text_px_shadow=offset_text_px_shadow)
             title_position_y = self.config.getint('DEFAULT', 'height') - (
                     offset_px_bottom + self.config.getint('DEFAULT', 'font_size_title')) - artist_height
-            self._fit_text_bottom_up(img=image_new, text=title, text_color='white', shadow_text_color='black',
+            self._fit_text_bottom_up(img=image_new, text=title, text_color=text_color, shadow_text_color=text_shadow_color,
                                      font=font_title, font_size=self.config.getint('DEFAULT', 'font_size_title'),
                                      y_offset=title_position_y, x_start_offset=offset_px_left,
                                      x_end_offset=offset_px_right, offset_text_px_shadow=offset_text_px_shadow)
@@ -379,7 +404,9 @@ class ShazampiEinkDisplay:
                             if song_info:
                                 self.logger.debug("identified....")
                                 # update remaining time to wait for next re-identify
-                                if song_info.song_duration is None or song_info.offset is None:
+                                if self.config.has_option('DEFAULT', 'delay_override'):
+                                    song_end_duration_left = self.config.getint('DEFAULT', 'delay_override')
+                                elif song_info.song_duration is None or song_info.offset is None:
                                     song_end_duration_left = self.delay
                                 else:
                                     song_end_duration_left = max(self.delay,
